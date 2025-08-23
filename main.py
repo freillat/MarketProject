@@ -1,0 +1,31 @@
+from scripts.step01_download_data import download_data
+from scripts.step02_feature_engineering import build_features
+from scripts.step03_train_model import train_model
+from scripts.step04_backtest import run_backtest
+
+TICKER = "BTC/USDT"
+TIMEFRAME = "1h"
+START_DATE = "2021-01-01"
+
+def main():
+    """
+    Runs the full end-to-end ML trading pipeline.
+    """
+    print("--- Starting ML Trading Pipeline ---")
+    
+    # Step 1: Download Data
+    download_data(ticker=TICKER, timeframe=TIMEFRAME, start_date=START_DATE)
+    
+    # Step 2: Feature Engineering
+    build_features(ticker=TICKER, timeframe=TIMEFRAME)
+    
+    # Step 3: Model Training
+    train_model(ticker=TICKER, timeframe=TIMEFRAME)
+    
+    # Step 4: Backtesting
+    run_backtest(ticker=TICKER, timeframe=TIMEFRAME)
+    
+    print("--- ML Trading Pipeline Finished ---")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,22 @@
+# Pipfile
+
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+ccxt = "*"
+scikit-learn = "*"
+xgboost = "*"
+pipenv = "*"
+streamlit = "*"
+joblib = "*"
+pandas-ta-openbb = "*"
+
+[dev-packages]
+notebook = "*"
+
+[requires]
+python_version = "3.11"
