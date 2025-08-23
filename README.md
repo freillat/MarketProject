@@ -149,5 +149,3 @@ The model's overall accuracy of **`52.4%`** shows a small but real predictive si
 * **Improve Short Signal:** Engineer features specifically designed to capture market downturns (e.g., "fear and greed" index, high volatility indicators) to improve the performance of the long-short strategy.
 * **Expand Asset Universe:** Test the model on other volatile assets like Ethereum (ETH) or Solana (SOL) to see if its predictive power is transferable.
 * **Live Deployment:** Deploy the model to a cloud service (e.g., AWS, GCP) and connect it to a broker's paper trading API to simulate live performance with real-world latency and order book dynamics.
-
-```
