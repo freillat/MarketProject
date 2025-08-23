@@ -1,14 +1,7 @@
-\ ```
 # 🤖 High-Frequency Crypto Trading Bot
 
-!
-
-PythonVersion
-(https://img.shields.io/badge/Python-3.11-blue.svg?style=for-the-badge)
-!
-
-Status
-(https://img.shields.io/badge/Status-Complete-success.svg?style=for-the-badge)
+![Python Version](https://img.shields.io/badge/Python-3.11-blue.svg?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Complete-success.svg?style=for-the-badge)
 
 An end-to-end machine learning pipeline that predicts hourly Bitcoin price movements and executes simulated trading strategies to outperform the market on a risk-adjusted basis.
 
@@ -16,60 +9,25 @@ An end-to-end machine learning pipeline that predicts hourly Bitcoin price movem
 
 ---
 ## Table of Contents
-- 
-
-AboutTheProject📝
-(#about-the-project-)
-- 
-
-TechnologyStack💻
-(#technology-stack-)
-- 
-
-ProjectArchitecture⚙ 
-R
-◯
- 
-(#project-architecture-)
-- 
-
-GettingStarted🚀
-(#getting-started-)
-- 
-
-Usage▶ 
-R
-◯
- 
-(#usage-)
-- 
-
-ModelingApproach🧠
-(#modeling-approach-)
-- 
-
-$$Backtest Results & Analysis 📈$$
-(#backtest-results--analysis-)
-- 
-
-FutureImprovements🚀
-(#future-improvements-)
+- [About The Project 📝](#about-the-project-)
+- [Technology Stack 💻](#technology-stack-)
+- [Project Architecture ⚙️](#project-architecture-)
+- [Getting Started 🚀](#getting-started-)
+- [Usage ▶️](#usage-)
+- [Modeling Approach 🧠](#modeling-approach-)
+- [Backtest Results & Analysis 📈](#backtest-results--analysis-)
+- [Future Improvements 🚀](#future-improvements-)
 
 ---
 ## About The Project 📝
 This project tackles the challenge of algorithmic trading in the highly volatile and 24/7 cryptocurrency market. Standard long-term stock strategies often fail to capture the high-frequency opportunities present in assets like Bitcoin.
 
 The objective was to build a complete, automated pipeline that:
-
-**Downloads** the latest hourly price data from the Binance exchange.
-
-**Engineers** a rich set of over 30 technical and time-based features.
-
-**Trains** a powerful XGBoost model to predict the next hour's price movement.
-
-**Simulates** two distinct trading strategies on out-of-sample data.
-
-**Visualizes** the results in an interactive dashboard.
+1.  **Downloads** the latest hourly price data from the Binance exchange.
+2.  **Engineers** a rich set of over 30 technical and time-based features.
+3.  **Trains** a powerful XGBoost model to predict the next hour's price movement.
+4.  **Simulates** two distinct trading strategies on out-of-sample data.
+5.  **Visualizes** the results in an interactive dashboard.
 
 The ultimate goal was to develop a strategy that could generate returns with significantly lower risk than a simple "Buy and Hold" benchmark.
 
@@ -89,6 +47,7 @@ This project utilizes a modern, open-source data science stack:
 ## Project Architecture ⚙️
 The project is designed as a modular, end-to-end pipeline. The `main.py` script orchestrates the execution of each step in sequence, ensuring a reproducible workflow from data ingestion to performance analysis.
 
+
 *A visual representation of the data flowing from the exchange API through feature engineering, model training, and finally to the backtest simulation.*
 
 ---
@@ -106,8 +65,8 @@ You can set up the project locally with Pipenv or run it in a container with Doc
 **1. Local Setup with Pipenv**
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/crypto-trading-bot.git
-cd crypto-trading-bot
+git clone [https://github.com/freillat/MarketProject.git](https://github.com/freillat/MarketProject.git)
+cd MarketProject
 
 # Install dependencies using Pipenv
 pipenv install
@@ -116,8 +75,8 @@ pipenv install
 **2. Setup with Docker**
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/crypto-trading-bot.git
-cd crypto-trading-bot
+git clone [https://github.com/freillat/MarketProject.git](https://github.com/freillat/MarketProject.git)
+cd MarketProject
 
 # Build the Docker image
 docker build -t crypto-bot .
@@ -136,7 +95,7 @@ pipenv run python main.py
 
 **With Docker:**
 ```bash
-docker run --rm -v "(pwd)/data":/app/data−v"(pwd)/models":/app/models crypto-bot
+docker run --rm -v ./data:/app/data -v ./models:/app/models crypto-bot
 ```
 
 ### Viewing the Dashboard
