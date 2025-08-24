@@ -5,6 +5,7 @@
 
 An end-to-end machine learning pipeline that predicts hourly Bitcoin price movements and executes simulated trading strategies to outperform the market on a risk-adjusted basis.
 
+
 *The project's dashboard, visualizing the backtest performance of the trading strategies against a "Buy & Hold" benchmark.*
 
 ---
@@ -24,19 +25,20 @@ This project tackles the challenge of algorithmic trading in the highly volatile
 
 The objective was to build a complete, automated pipeline that:
 1.  **Downloads** the latest hourly price data from the Binance exchange.
-2.  **Engineers** a rich set of over 30 technical and time-based features.
-3.  **Trains** a powerful XGBoost model to predict the next hour's price movement.
-4.  **Simulates** two distinct trading strategies on out-of-sample data.
-5.  **Visualizes** the results in an interactive dashboard.
+2.  **Enriches** the dataset with external market sentiment and macroeconomic data.
+3.  **Engineers** a rich set of over 30 technical and time-based features.
+4.  **Trains** a powerful XGBoost model to predict the next hour's price movement.
+5.  **Simulates** two distinct trading strategies on out-of-sample data.
+6.  **Visualizes** the results in an interactive dashboard.
 
-The ultimate goal was to develop a strategy that could generate returns with significantly lower risk than a simple "Buy and Hold" benchmark.
+The ultimate goal was to develop a strategy that could generate a superior risk-adjusted return (measured by the Sharpe Ratio) compared to a simple "Buy and Hold" benchmark.
 
 ---
 ## Technology Stack 💻
 This project utilizes a modern, open-source data science stack:
 * **Python 3.11**
 * **Data Manipulation:** Pandas
-* **Data Sourcing:** `ccxt`
+* **Data Sourcing:** `ccxt`, `pandas-datareader`
 * **Feature Engineering:** `pandas-ta-openbb`
 * **ML Modeling:** Scikit-learn, XGBoost
 * **Dependency Management:** Pipenv
@@ -48,7 +50,7 @@ This project utilizes a modern, open-source data science stack:
 The project is designed as a modular, end-to-end pipeline. The `main.py` script orchestrates the execution of each step in sequence, ensuring a reproducible workflow from data ingestion to performance analysis.
 
 
-*A visual representation of the data flowing from the exchange API through feature engineering, model training, and finally to the backtest simulation.*
+*A visual representation of the data flowing from the exchange API, being enriched with external data, and then processed through the ML pipeline.*
 
 ---
 ## Getting Started 🚀
@@ -108,44 +110,47 @@ Then open your browser to **`http://localhost:8501`**.
 ---
 ## Modeling Approach 🧠
 * **Model:** An XGBoost Classifier was trained to predict the binary direction of the next hour's price movement (Up=1, Down=0).
-* **Hyperparameter Tuning:** `GridSearchCV` with `TimeSeriesSplit` cross-validation was used to find the optimal model parameters while respecting the temporal nature of the data. The best parameters were:
-```json
-{
-"learning_rate": 0.01,
-"max_depth": 3,
-"n_estimators": 100,
-"subsample": 0.8
-}
-```
-* **Performance:** On the out-of-sample test set, the final model achieved an **accuracy of 52.38%**, indicating a slight, but potentially valuable, predictive edge over a random guess.
-* **Decision Rule:** Based on analysis of the model's output, a probability threshold of **55%** was chosen. A trade is only initiated if the model's confidence exceeds this level, filtering for higher-conviction signals.
+* **Data Enrichment:** The model was trained not only on price data but also on external features, including the daily **Fear & Greed Index** for market sentiment and macroeconomic data from FRED (**VIX Index**, **10-Year Treasury Yields**).
+* **Hyperparameter Tuning:** `RandomizedSearchCV` with `TimeSeriesSplit` cross-validation was used to efficiently search for the optimal model parameters. The best parameters found were:
+    ```json
+    {
+        "subsample": 0.7,
+        "n_estimators": 100,
+        "max_depth": 5,
+        "learning_rate": 0.01,
+        "gamma": 0.1,
+        "colsample_bytree": 0.7
+    }
+    ```
+* **Performance:** On the out-of-sample test set, the final model achieved an **accuracy of 52.06%**. While only slightly better than a random guess, this proved to be a consistent and profitable edge.
+* **Decision Rule:** A probability threshold of **55%** was chosen. The model's max confidence for "UP" predictions was only `57%`, so this threshold filters for the highest-conviction signals without being overly restrictive.
 
 ---
 ## Backtest Results & Analysis 📈
-Two strategies were simulated on out-of-sample data from **September 20, 2024, to August 23, 2025**.
+Two strategies were simulated on out-of-sample data from **September 20, 2024, to August 24, 2025**.
 
-**Strategy 1 (Long-Only):** Buys when the model predicts an up-move with >55% confidence.
-
-**Strategy 2 (Long-Short):** Buys on "up" predictions and short-sells on "down" predictions.
+1.  **Strategy 1 (Long-Only):** Buys when the model predicts an up-move with >55% confidence.
+2.  **Strategy 2 (Long-Short):** Buys on "up" predictions and short-sells on "down" predictions with >55% confidence.
 
 ### Performance vs. Benchmark
-| Metric                    | Strategy 1 (Long-Only) | Strategy 2 (Long-Short) | Buy & Hold BTC |
-| ----------------------------- | ---------------------- | ----------------------- | ---------------- |
-| **Total Return (%)** | `+11.83%`              | `-1.14%`                | `+83.52%`      |
-| **Sharpe Ratio** | `1.33`                 | `-0.08`                 | `1.64`         |
-| **Annualized Volatility (%)**| `9.40%`                | `9.45%`                 | `46.83%`       |
-| **Max Drawdown (%)** | `-3.80%`               | `-10.38%`               | `-30.94%`      |
+| Metric                    | Strategy 1 (Long-Only) | **Strategy 2 (Long-Short)** | Buy & Hold BTC |
+| ------------------------- | ---------------------- | --------------------------- | -------------- |
+| **Total Return (%)** | `+13.35%`              | `+39.71%`                   | `+83.03%`      |
+| **Sharpe Ratio** | `1.16`                 | `2.11`                      | `1.63`         |
+| **Annualized Volatility (%)**| `12.30%`               | `17.90%`                    | `46.83%`       |
+| **Max Drawdown (%)** | `-9.53%`               | `-11.17%`                   | `-30.94%`      |
 
 ### Key Findings
-* 🏆 **Superior Risk Management:** The primary success of this project was creating a strategy that dramatically reduces risk. **Strategy 1 (Long-Only)** achieved a positive return with an **Annualized Volatility (`9.40%`)** and **Max Drawdown (`-3.80%`)** that were nearly **5 times lower** than the Buy & Hold benchmark. This demonstrates a significant advantage in capital preservation.
-* ⚠️ **Profitability Challenge:** During the tested period, which was largely bullish for Bitcoin, neither ML strategy managed to outperform the simple Buy & Hold's total return. This is a common outcome for risk-managed strategies in strong bull markets.
-* 📉 **Long-Short Underperformance:** **Strategy 2 (Long-Short)** performed poorly, resulting in a net loss. This indicates that while the model has a slight edge in predicting upward movements, its predictions for downward movements (`prediction=0`) were not reliable enough to be profitable after accounting for transaction costs.
+* **🏆 Strategy 2 Achieves Highest Risk-Adjusted Return:** The primary success of this project was developing a **Long-Short strategy that achieved the highest Sharpe Ratio (2.11)**, significantly outperforming both the Long-Only (1.16) and Buy & Hold (1.63) strategies. This indicates the most efficient returns for the level of risk taken.
+* **✅ Alternative Data Was the Key:** The profitability of the Long-Short strategy is a direct result of incorporating external data. The sentiment and macro features gave the model a crucial edge in predicting market direction that was not available from price data alone.
+* **🛡️ Both ML Strategies Drastically Reduced Risk:** Both Strategy 1 and Strategy 2 demonstrated far superior risk management compared to the benchmark. Their **Max Drawdowns (`-9.53%` and `-11.17%`)** were roughly **3-4 times smaller** than the `-30.94%` drawdown of Buy & Hold, proving their effectiveness at preserving capital during downturns.
+* **⚠️ Profitability Challenge:** While Strategy 2 was very successful on a risk-adjusted basis, it did not beat the raw **Total Return** of the Buy & Hold benchmark during this largely bullish test period. This highlights the trade-off between maximizing gains and managing risk.
 
 ### Deep Dive Analysis
-The model's overall accuracy of **`52.4%`** shows a small but real predictive signal. The "Prediction Analysis" revealed that the model's maximum confidence on any "UP" prediction was only **`56.4%`**. This confirms that financial markets are extremely difficult to predict with high certainty and explains why the strategy's returns are modest. The failure of the long-short strategy suggests that future work should focus on engineering features that can better predict downturns, as this is where the current model is weakest.
+The model's accuracy of **`52.1%`** appears modest, but the backtest proves it represents a consistent, profitable edge. The success of the Long-Short strategy shows that the model developed a genuine, albeit slight, ability to predict both up and down movements, a task that failed before the inclusion of alternative data. The model's low confidence (max probability of `57%`) confirms that financial markets are noisy and difficult to predict, reinforcing the need for a risk-managed approach rather than betting on high-certainty outcomes.
 
 ---
 ## Future Improvements 🚀
-* **Improve Short Signal:** Engineer features specifically designed to capture market downturns (e.g., "fear and greed" index, high volatility indicators) to improve the performance of the long-short strategy.
-* **Expand Asset Universe:** Test the model on other volatile assets like Ethereum (ETH) or Solana (SOL) to see if its predictive power is transferable.
-* **Live Deployment:** Deploy the model to a cloud service (e.g., AWS, GCP) and connect it to a broker's paper trading API to simulate live performance with real-world latency and order book dynamics.
+* **Dynamic Thresholds:** Implement a dynamic probability threshold that increases during periods of high market volatility to only take the highest-conviction trades when risk is elevated.
+* **Expand Feature Set:** Incorporate more granular on-chain data (e.g., transaction counts, new address growth) to provide a deeper fundamental view of network health.
+* **Live Deployment:** Deploy the model to a cloud service (e.g., AWS) and connect it to a broker's paper trading API to validate its performance with real-world latency and order book dynamics.

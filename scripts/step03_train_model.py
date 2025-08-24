@@ -1,13 +1,14 @@
 import pandas as pd
 import xgboost as xgb
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit
+from sklearn.model_selection import train_test_split, RandomizedSearchCV, TimeSeriesSplit
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 import os
 
 def train_model(ticker, timeframe, data_dir="data", model_dir="models"):
     """
-    Trains an XGBoost model using GridSearchCV with TimeSeriesSplit for hyperparameter tuning.
+    Trains an XGBoost model using RandomizedSearchCV with TimeSeriesSplit 
+    for more efficient hyperparameter tuning.
     """
     print(f"--- Training model for {ticker} ---")
     
@@ -29,47 +30,51 @@ def train_model(ticker, timeframe, data_dir="data", model_dir="models"):
     
     print(f"Training data size: {len(X_train)}, Testing data size: {len(X_test)}")
     
-    # --- GridSearchCV Implementation ---
+    # --- RandomizedSearchCV Implementation ---
     
-    # 1. Define the model
+    # 1. Define the base model to be tuned
     model = xgb.XGBClassifier(objective='binary:logistic', eval_metric='logloss', use_label_encoder=False)
     
-    # 2. Define the parameter grid to search
-    # Note: This is a small grid for demonstration. For a real project, you might expand this.
-    param_grid = {
-        'n_estimators': [100, 200, 300],
-        'max_depth': [3, 5, 7],
-        'learning_rate': [0.01, 0.1],
-        'subsample': [0.8, 1.0]
+    # 2. Define a large parameter distribution to sample from
+    param_dist = {
+        'n_estimators': [100, 200, 300, 400],
+        'max_depth': [3, 5, 7, 9],
+        'learning_rate': [0.01, 0.05, 0.1],
+        'subsample': [0.7, 0.8, 0.9, 1.0],
+        'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
+        'gamma': [0, 0.1, 0.2]
     }
     
-    # 3. Use TimeSeriesSplit for cross-validation
-    # This is crucial for time series data to prevent lookahead bias.
+    # 3. Use TimeSeriesSplit for cross-validation, which is crucial for time series data
     tscv = TimeSeriesSplit(n_splits=3)
     
-    # 4. Set up and run GridSearchCV
+    # 4. Set up and run RandomizedSearchCV
+    # n_iter=50 means it will test 50 random combinations from param_dist. Total fits = 50 * 3 = 150
     # n_jobs=-1 uses all available CPU cores to speed up the search.
     # verbose=2 will print progress updates.
-    print("--- Starting GridSearchCV for hyperparameter tuning... ---")
-    grid_search = GridSearchCV(
-        estimator=model, 
-        param_grid=param_grid, 
-        cv=tscv, 
-        scoring='accuracy', 
-        verbose=2, 
-        n_jobs=-1
+    # random_state=42 ensures the "random" search is the same every time you run it.
+    print("--- Starting RandomizedSearchCV for hyperparameter tuning... ---")
+    random_search = RandomizedSearchCV(
+        estimator=model,
+        param_distributions=param_dist,
+        n_iter=50,
+        cv=tscv,
+        scoring='accuracy',
+        verbose=2,
+        n_jobs=-1,
+        random_state=42
     )
     
-    grid_search.fit(X_train, y_train)
+    random_search.fit(X_train, y_train)
     
-    # 5. Get the best model and its parameters
-    best_model = grid_search.best_estimator_
-    print(f"--- GridSearchCV Finished ---")
-    print(f"Best parameters found: {grid_search.best_params_}")
+    # 5. Get the best model and its parameters from the search
+    best_model = random_search.best_estimator_
+    print(f"--- RandomizedSearchCV Finished ---")
+    print(f"Best parameters found: {random_search.best_params_}")
     
-    # --- End of GridSearchCV Implementation ---
+    # --- End of RandomizedSearchCV Implementation ---
 
-    # Evaluate the *best* model on the test set
+    # Evaluate the *best* model on the out-of-sample test set
     y_pred = best_model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"\nBest Model Accuracy on Test Set: {accuracy:.4f}")
