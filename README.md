@@ -25,12 +25,30 @@ An end-to-end machine learning pipeline that predicts hourly Bitcoin price movem
 This project tackles the challenge of algorithmic trading in the highly volatile and 24/7 cryptocurrency market. Standard long-term stock strategies often fail to capture the high-frequency opportunities present in assets like Bitcoin.
 
 The objective was to build a complete, automated pipeline that:
-1.  **Downloads** the latest hourly price data from the Binance exchange.
-2.  **Enriches** the dataset with external market sentiment and macroeconomic data.
-3.  **Engineers** a rich set of over 30 technical and time-based features.
-4.  **Trains** a powerful XGBoost model to predict the next hour's price movement.
-5.  **Simulates** two distinct trading strategies on out-of-sample data.
-6.  **Visualizes** the results in an interactive dashboard.
+
+1.  **Downloads Price Data:** The foundational dataset consists of high-frequency price and volume data, which forms the basis for all technical analysis. Using the powerful **`ccxt`** library, the pipeline connects to the public **Binance API** to download a complete history of hourly **OHLCV** (Open, High, Low, Close, Volume) data for Bitcoin (`BTC/USDT`). The script automatically handles pagination to fetch all available records from the specified start date, ensuring a comprehensive and up-to-date time series for feature engineering and model training.
+
+2.  **Enriches the Dataset:** To create a more robust model that sees beyond simple price action, the raw OHLCV data is enriched with external datasets that provide crucial context on market sentiment and the broader macroeconomic environment.
+    * **Market Sentiment:** This is captured using the daily **Fear & Greed Index**, a popular metric that gauges investor emotion from sources like volatility and social media.
+    * **Macroeconomic Context:** Data is pulled from the FRED database, including the **VIX Index** (the stock market's "fear gauge") and **10-Year US Treasury yields** to understand the risk-on/risk-off appetite in traditional markets.
+
+    These daily metrics are programmatically downloaded and then intelligently merged with the hourly price data, ensuring the model has access to the most recent sentiment and economic information for every hour of trading.
+
+3.  **Engineers a Rich Feature Set:** Raw price data is not sufficient for a machine learning model to learn from. Therefore, the pipeline engineers a comprehensive feature set of over 30 indicators using the **`pandas-ta-openbb`** library and custom transformations. The goal is to provide the XGBoost model with a holistic view of the market's dynamics from multiple perspectives:
+    * **Momentum Indicators:** To measure the rate of price change (e.g., **RSI** - Relative Strength Index, **MACD** - Moving Average Convergence Divergence).
+    * **Volatility Indicators:** To measure the magnitude of price swings (e.g., **Bollinger Bands**, **ATR** - Average True Range).
+    * **Trend Indicators:** To help identify the market's direction (e.g., **EMAs** - Exponential Moving Averages of various lengths).
+    * **Volume Indicators:** To incorporate trading volume into the analysis (e.g., **OBV** - On-Balance Volume).
+    * **Time-Based Features:** To capture cyclical patterns (e.g., **hour of the day**, **day of the week**).
+
+4.  **Trains a Predictive Model:** The core of the project is a powerful **XGBoost Classifier**, a gradient boosting algorithm renowned for its performance on tabular data. The model is trained to solve a binary classification problem: predicting whether the price of Bitcoin will be higher or lower in the next hour. It learns from a comprehensive set of over 30 features, including technical indicators, time-based features, and the external sentiment/macroeconomic data. To ensure peak performance, **`RandomizedSearchCV`** is used to efficiently tune the model's hyperparameters, with **`TimeSeriesSplit`** cross-validation to guarantee the model is validated on out-of-sample data, respecting the chronological order of the market.
+
+5.  **Simulates Trading Strategies:** A model's accuracy is meaningless without a robust simulation to translate its predictions into real-world performance. The project implements a rigorous, event-driven backtest that runs exclusively on an **out-of-sample test set**—data the model has never seen before—to provide an unbiased evaluation. Two distinct approaches are tested: a baseline **Long-Only** strategy and a more advanced **Long-Short** strategy that attempts to profit from both upward and downward price movements. The simulation realistically accounts for **transaction costs** on every trade to ensure the final results are not artificially inflated.
+
+6.  **Visualizes the Results:** To make the complex backtest results accessible and easy to interpret, an interactive web dashboard was built using the **Streamlit** library. This dashboard serves as the primary interface for viewing the project's findings, featuring:
+    * An equity curve chart comparing the performance of the ML strategies against the "Buy & Hold" benchmark.
+    * A summary table of key performance metrics like Sharpe Ratio, Total Return, and Max Drawdown.
+    * A view of the most recent data and trade signals generated by the model.
 
 The ultimate goal was to develop a strategy that could generate a superior risk-adjusted return (measured by the Sharpe Ratio) compared to a simple "Buy and Hold" benchmark.
 
