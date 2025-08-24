@@ -18,6 +18,7 @@ An end-to-end machine learning pipeline that predicts hourly Bitcoin price movem
 - [Modeling Approach 🧠](#modeling-approach-)
 - [Backtest Results & Analysis 📈](#backtest-results--analysis-)
 - [Future Improvements 🚀](#future-improvements-)
+- [Appendix: Technology Deep Dive 🛠️](#appendix-technology-deep-dive-️)
 
 ---
 ## About The Project 📝
@@ -154,3 +155,20 @@ The model's accuracy of **`52.1%`** appears modest, but the backtest proves it r
 * **Dynamic Thresholds:** Implement a dynamic probability threshold that increases during periods of high market volatility to only take the highest-conviction trades when risk is elevated.
 * **Expand Feature Set:** Incorporate more granular on-chain data (e.g., transaction counts, new address growth) to provide a deeper fundamental view of network health.
 * **Live Deployment:** Deploy the model to a cloud service (e.g., AWS) and connect it to a broker's paper trading API to validate its performance with real-world latency and order book dynamics.
+
+---
+## Appendix: Technology Deep Dive 🛠️
+
+This section provides more detail on some of the key technologies that power this project.
+
+### `ccxt`: The Crypto Exchange Bridge
+* **What it is:** `ccxt` (CryptoCurrency eXchange Trading Library) is a powerful Python library that provides a unified interface for connecting to over 100 different cryptocurrency exchanges.
+* **Why it was used:** Every exchange has a unique API. `ccxt` abstracts this complexity, allowing the project to download historical data from Binance using a simple, standardized set of commands. This makes the data-gathering process robust and easily adaptable to other exchanges in the future.
+
+### XGBoost: The Predictive Engine
+* **What it is:** XGBoost (e**X**treme **G**radient **B**oosting) is a highly efficient and powerful machine learning algorithm based on gradient-boosted decision trees. It is renowned for its performance and is a frequent winner of data science competitions.
+* **Why it was used:** Financial market data is notoriously noisy with complex, non-linear patterns. XGBoost excels at modeling such data. In this project, it was used as the core predictive engine, learning from over 30 features to classify the probability of the next hour's price movement.
+
+### `RandomizedSearchCV`: The Efficient Tuner
+* **What it is:** `RandomizedSearchCV` is a tool from the Scikit-learn library used for hyperparameter tuning. It is a more time-efficient alternative to an exhaustive `GridSearchCV`.
+* **Why it was used:** Finding the optimal settings for an XGBoost model can be computationally expensive. Instead of trying every single combination of parameters, `RandomizedSearchCV` was configured to test 50 random combinations from a large distribution. This allowed for a wide exploration of the parameter space in a practical amount of time, ultimately finding the robust model used in the final backtest while being paired with `TimeSeriesSplit` to prevent lookahead bias.
